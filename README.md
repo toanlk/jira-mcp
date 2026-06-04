@@ -66,82 +66,76 @@ AI Agent (Claude Code / Codex / Antigravity)
 ```bash
 git clone <repository-url>
 cd jira-mcp
-npm install
-npm run build
+./setup.sh
 ```
 
 ## Configuration
 
-Tạo file `.env` từ template:
+`setup.sh` sẽ:
+
+- Cài dependencies bằng `npm install`
+- Build server bằng `npm run build`
+- Tạo hoặc giữ lại file `.env` tại root project
+- Cấu hình MCP server `jira` vào:
+  - Codex: `~/.codex/config.toml`
+  - Claude Code: `~/.claude.json`
+  - Antigravity: `~/.gemini/antigravity/mcp_config.json`
+  - Kiro: `~/.kiro/settings/mcp.json`
+  - OpenCode: `~/.config/opencode/opencode.json`
+
+Nếu chạy interactive, script sẽ hỏi:
+
+- `JIRA_BASE_URL`
+- `JIRA_TOKEN`
+
+Hoặc có thể truyền trước qua environment:
 
 ```bash
-cp .env.example .env
+JIRA_BASE_URL=https://your-jira.company.com \
+JIRA_TOKEN=your-token \
+./setup.sh
+```
+
+Một vài option hữu ích:
+
+```bash
+./setup.sh --clients codex,claude
+./setup.sh --name jira-company
+./setup.sh --skip-deps --skip-build --skip-env
+./setup.sh --force-env
 ```
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `JIRA_BASE_URL` | URL Jira instance (required) | - |
 | `JIRA_TOKEN` | Bearer authentication token (required) | - |
-| `JIRA_JQL` | Default JQL query cho search | `assignee = currentUser() AND resolution = Unresolved` |
 
 ## Client Setup
 
 ### Claude Code
-
-Thêm vào `~/.claude/settings.json` hoặc `.claude/settings.json` trong project:
-
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "node",
-      "args": ["path/to/jira-mcp/dist/index.js"],
-      "env": {
-        "JIRA_BASE_URL": "https://your-jira.company.com",
-        "JIRA_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
+Chạy `./setup.sh` để tự động thêm config user-level vào `~/.claude.json`.
 
 ### Codex
-
-Thêm vào cấu hình MCP của Codex:
-
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "node",
-      "args": ["path/to/jira-mcp/dist/index.js"],
-      "env": {
-        "JIRA_BASE_URL": "https://your-jira.company.com",
-        "JIRA_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
+Chạy `./setup.sh` để tự động thêm config vào `~/.codex/config.toml`.
 
 ### Antigravity
 
-Cấu hình MCP server tương tự, theo hướng dẫn của Antigravity client.
+Chạy `./setup.sh` để tự động thêm config vào `~/.gemini/antigravity/mcp_config.json`.
+
+### Kiro
+
+Chạy `./setup.sh` để tự động thêm config vào `~/.kiro/settings/mcp.json`.
+
+### OpenCode
+
+Chạy `./setup.sh` để tự động thêm config vào `~/.config/opencode/opencode.json`.
 
 ## Local Verification
 
-Build project:
+Start the MCP server through the shared launcher:
 
 ```bash
-npm run build
-```
-
-Start the MCP server with environment variables:
-
-```bash
-JIRA_BASE_URL=https://your-jira.company.com \
-JIRA_TOKEN=your-token \
-node dist/index.js
+./setup.sh serve
 ```
 
 Nếu thiếu config, server sẽ exit với message hướng dẫn rõ ràng thay vì in raw stack trace.
