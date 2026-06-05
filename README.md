@@ -7,6 +7,8 @@ MCP (Model Context Protocol) Server kết nối đến Jira Self-Hosted, cho ph�
 - **Claude Code** (Anthropic)
 - **Codex** (OpenAI)
 - **Antigravity** (Google DeepMind)
+- **Kiro**
+- **OpenCode**
 - Bất kỳ MCP-compatible client nào
 
 ## Features
@@ -15,6 +17,7 @@ MCP (Model Context Protocol) Server kết nối đến Jira Self-Hosted, cho ph�
 
 - Tìm kiếm issues bằng JQL query
 - Xem chi tiết issue (summary, description, status, assignee, priority, comments...)
+- Đọc metadata attachment, avatar và inline image được tham chiếu trong comment Jira wiki markup
 - Lấy danh sách transitions khả dụng cho issue
 
 ### Write
@@ -54,6 +57,78 @@ AI Agent (Claude Code / Codex / Antigravity)
 | `transition_issue` | Chuyển trạng thái issue |
 | `add_comment` | Thêm comment vào issue |
 | `get_transitions` | Lấy danh sách transitions khả dụng |
+
+## Tool Inputs
+
+### `search_issues`
+
+Input:
+
+- `jql` (string, required)
+- `maxResults` (number, optional, default `50`, maximum `500`)
+
+Notes:
+
+- Server phân trang qua Jira REST API và request mỗi page tối đa 100 issues.
+- Response gồm `total`, `returned`, và danh sách issue với key, summary, status, priority, assignee, assignee avatar URLs, issue type và attachment metadata.
+
+### `get_issue`
+
+Input:
+
+- `issueKey` (string, required), ví dụ `PROJ-123`
+
+Response gồm key, summary, description, issue type, status, priority, assignee, reporter, avatar URLs, created/updated, due date, fix versions, attachments, comments và subtasks.
+
+Attachment payload gồm `id`, `filename`, `mimeType`, `size`, `contentUrl`, `thumbnailUrl`, `created`, `author`, `authorAvatarUrls`.
+
+Comment payload gồm body, author metadata, timestamps, `inlineImageNames`, và `inlineImages` nếu comment dùng Jira wiki markup dạng `!filename.png!` trỏ tới attachment cùng issue.
+
+### `create_issue`
+
+Input:
+
+- `projectKey` (string, required)
+- `issueType` (string, required)
+- `summary` (string, required)
+- `description` (string, optional)
+- `assignee` (string, optional; mapped to Jira user `name`)
+- `priority` (string, optional; mapped to priority `name`)
+- `parentKey` (string, optional; dùng cho sub-task)
+
+### `update_issue`
+
+Input:
+
+- `issueKey` (string, required)
+- `summary`, `description`, `assignee`, `priority`, `dueDate` (optional)
+- `labels`, `fixVersions` (string array, optional)
+
+At least one editable field must be provided. `fixVersions` được gửi theo Jira version `name`.
+
+### `get_transitions`
+
+Input:
+
+- `issueKey` (string, required)
+
+Response gồm danh sách `{ id, name, toStatus }`.
+
+### `transition_issue`
+
+Input:
+
+- `issueKey` (string, required)
+- `transitionId` (string, required)
+
+Sau khi transition, server đọc lại issue và trả về status mới.
+
+### `add_comment`
+
+Input:
+
+- `issueKey` (string, required)
+- `body` (string, required)
 
 ## Prerequisites
 
@@ -110,6 +185,8 @@ Một vài option hữu ích:
 | `JIRA_BASE_URL` | URL Jira instance (required) | - |
 | `JIRA_TOKEN` | Bearer authentication token (required) | - |
 
+`.env` được tạo với permission `600`. Nếu `.env` đã tồn tại, `setup.sh` giữ nguyên nội dung trừ khi dùng `--force-env`.
+
 ## Client Setup
 
 ### Claude Code
@@ -139,6 +216,18 @@ Start the MCP server through the shared launcher:
 ```
 
 Nếu thiếu config, server sẽ exit với message hướng dẫn rõ ràng thay vì in raw stack trace.
+
+Build TypeScript:
+
+```bash
+npm run build
+```
+
+Chạy trực tiếp sau khi build:
+
+```bash
+npm start
+```
 
 ## Tech Stack
 

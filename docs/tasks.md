@@ -36,9 +36,9 @@ Files: `src/jira-client.ts`
 ### Task 3: Tool `search_issues` [Depends on: Task 1, Task 2]
 **Objective:** Đăng ký MCP tool cho phép AI agent tìm kiếm issues bằng JQL.
 - [x] Tạo `src/tools/search.ts`
-- [x] Định nghĩa tool schema với zod: `jql` (string, required), `maxResults` (number, optional)
+- [x] Định nghĩa tool schema với zod: `jql` (string, required), `maxResults` (number, optional, maximum 500)
 - [x] Implement handler: gọi `JiraClient.searchIssues()`, format response
-- [x] Response trả về: mỗi issue gồm key, summary, status, priority, assignee, issueType
+- [x] Response trả về: mỗi issue gồm key, summary, status, priority, assignee, assignee avatar URLs, issueType, attachments
 - [x] Đăng ký tool trong `server.ts`
 Files: `src/tools/search.ts`, `src/server.ts`
 **Demo:** Từ Claude Code, gọi `search_issues` với JQL → nhận danh sách issues
@@ -48,7 +48,8 @@ Files: `src/tools/search.ts`, `src/server.ts`
 - [x] Tạo `src/tools/get-issue.ts`
 - [x] Định nghĩa tool schema: `issueKey` (string, required)
 - [x] Implement handler: gọi `JiraClient.getIssue()`, format response đầy đủ
-- [x] Response gồm: key, summary, description, status, priority, assignee, reporter, created, updated, dueDate, fixVersions, comments, subtasks
+- [x] Response gồm: key, summary, description, issue type, status, priority, assignee, reporter, avatar URLs, created, updated, dueDate, fixVersions, attachments, comments, subtasks
+- [x] Parse inline image names trong comment Jira wiki markup và map sang attachment metadata
 - [x] Đăng ký tool trong `server.ts`
 Files: `src/tools/get-issue.ts`, `src/server.ts`
 **Demo:** Từ Claude Code, gọi `get_issue` với key "PROJ-123" → nhận chi tiết issue
@@ -101,6 +102,19 @@ Files: `src/tools/comment.ts`, `src/server.ts`
 - [x] Trả về error message dễ hiểu cho AI agent (không raw stack trace)
 Files: `src/server.ts`, `src/jira-client.ts`
 **Demo:** Chạy server thiếu env → hiển thị error message hướng dẫn cấu hình
+
+### Task 9.1: Setup script và multi-client install [Depends on: Task 1]
+**Objective:** Cung cấp script setup cài dependency, build, tạo env và đăng ký MCP server vào client configs.
+- [x] Tạo `setup.sh` với install mode và `serve` mode
+- [x] Hỗ trợ options: `--name`, `--clients`, `--skip-deps`, `--skip-build`, `--skip-env`, `--force-env`
+- [x] Tạo hoặc giữ `.env`; chmod `600` khi tạo mới
+- [x] Cấu hình Codex trong `~/.codex/config.toml`
+- [x] Cấu hình Claude Code trong `~/.claude.json`
+- [x] Cấu hình Antigravity trong `~/.gemini/antigravity/mcp_config.json`
+- [x] Cấu hình Kiro trong `~/.kiro/settings/mcp.json`
+- [x] Cấu hình OpenCode trong `~/.config/opencode/opencode.json`
+Files: `setup.sh`, `README.md`
+**Demo:** Chạy `./setup.sh --clients codex,claude` → client configs trỏ về `setup.sh serve`
 
 ### Task 10: End-to-end testing với Claude Code [Depends on: Task 3-9]
 **Objective:** Verify toàn bộ flow hoạt động từ Claude Code đến Jira.
