@@ -28,7 +28,17 @@ export const searchIssuesTool = {
           status: fields.status?.name ?? null,
           priority: fields.priority?.name ?? null,
           assignee: fields.assignee?.displayName ?? fields.assignee?.name ?? null,
+          assigneeAvatarUrls: fields.assignee?.avatarUrls ?? null,
           issueType: fields.issuetype?.name ?? null,
+          attachments: Array.isArray(fields.attachment)
+            ? fields.attachment.map((attachment: any) => ({
+                id: attachment.id ?? null,
+                filename: attachment.filename ?? null,
+                mimeType: attachment.mimeType ?? null,
+                contentUrl: attachment.content ?? null,
+                thumbnailUrl: attachment.thumbnail ?? null,
+              }))
+            : [],
         };
       }),
     };
