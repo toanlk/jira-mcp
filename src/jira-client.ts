@@ -24,6 +24,21 @@ export type JiraIssue = {
   fields: Record<string, unknown>;
 };
 
+export type JiraAttachment = {
+  id?: string;
+  filename?: string;
+  mimeType?: string;
+  size?: number;
+  content?: string;
+  thumbnail?: string;
+  created?: string;
+  author?: {
+    displayName?: string;
+    name?: string;
+    avatarUrls?: Record<string, string>;
+  };
+};
+
 export type JiraTransition = {
   id: string;
   name: string;
@@ -181,6 +196,46 @@ export class JiraClient {
       url: `/rest/api/2/issue/${encodeURIComponent(issueKey)}/comment`,
       data: { body },
     });
+  }
+
+  async downloadAttachment(contentUrl: string, maxBytes: number): Promise<{
+    data: Buffer;
+    contentType?: string;
+    contentLength?: number;
+  }> {
+    try {
+      const response = await this.http.request<ArrayBuffer>({
+        method: "GET",
+        url: contentUrl,
+        responseType: "arraybuffer",
+        headers: {
+          Accept: "*/*",
+        },
+      });
+      const data = Buffer.from(response.data);
+      const contentLength = Number(response.headers["content-length"] ?? data.byteLength);
+
+      if (contentLength > maxBytes || data.byteLength > maxBytes) {
+        throw new JiraApiError(
+          `Jira attachment is too large to download (${Math.max(contentLength, data.byteLength)} bytes, limit ${maxBytes} bytes).`,
+        );
+      }
+
+      return {
+        data,
+        contentType:
+          typeof response.headers["content-type"] === "string"
+            ? response.headers["content-type"]
+            : undefined,
+        contentLength,
+      };
+    } catch (error) {
+      if (error instanceof JiraApiError) {
+        throw error;
+      }
+
+      throw this.toJiraError(error);
+    }
   }
 
   private async request<T>(config: {

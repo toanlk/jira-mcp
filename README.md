@@ -18,6 +18,7 @@ MCP (Model Context Protocol) Server kết nối đến Jira Self-Hosted, cho ph�
 - Tìm kiếm issues bằng JQL query
 - Xem chi tiết issue (summary, description, status, assignee, priority, comments...)
 - Đọc metadata attachment, avatar và inline image được tham chiếu trong comment Jira wiki markup
+- Tải attachment về local bằng Jira authentication để AI agent đọc ảnh/file thực tế
 - Lấy danh sách transitions khả dụng cho issue
 
 ### Write
@@ -52,6 +53,7 @@ AI Agent (Claude Code / Codex / Antigravity)
 |------|-------------|
 | `search_issues` | Tìm kiếm issues bằng JQL query |
 | `get_issue` | Lấy chi tiết một issue theo key |
+| `download_attachment` | Tải attachment của issue về local |
 | `create_issue` | Tạo issue mới |
 | `update_issue` | Cập nhật fields của issue |
 | `transition_issue` | Chuyển trạng thái issue |
@@ -83,6 +85,19 @@ Response gồm key, summary, description, issue type, status, priority, assignee
 Attachment payload gồm `id`, `filename`, `mimeType`, `size`, `contentUrl`, `thumbnailUrl`, `created`, `author`, `authorAvatarUrls`.
 
 Comment payload gồm body, author metadata, timestamps, `inlineImageNames`, và `inlineImages` nếu comment dùng Jira wiki markup dạng `!filename.png!` trỏ tới attachment cùng issue.
+
+### `download_attachment`
+
+Input:
+
+- `issueKey` (string, required)
+- `attachmentId` (string, optional)
+- `filename` (string, optional)
+- `outputDir` (string, optional, default `/tmp/jira-mcp/<issueKey>`)
+- `returnBase64` (boolean, optional, default `false`)
+- `maxBytes` (number, optional, default `26214400`, maximum `104857600`)
+
+Phải truyền ít nhất một trong `attachmentId` hoặc `filename`. Tool dùng Bearer token của MCP server để tải `contentUrl`, ghi file ra local, rồi trả `localPath`. Chỉ bật `returnBase64` khi client thật sự cần nội dung file nằm trong response vì ảnh lớn có thể làm phình context.
 
 ### `create_issue`
 

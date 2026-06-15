@@ -5,6 +5,7 @@ import type { ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-com
 import { JiraClient, JiraApiError } from "./jira-client.js";
 import { addCommentTool } from "./tools/comment.js";
 import { createIssueTool } from "./tools/create-issue.js";
+import { downloadAttachmentTool } from "./tools/download-attachment.js";
 import { getIssueTool } from "./tools/get-issue.js";
 import { searchIssuesTool } from "./tools/search.js";
 import { getTransitionsTool, transitionIssueTool } from "./tools/transition.js";
@@ -20,6 +21,7 @@ type ToolDefinition = {
 const tools: ToolDefinition[] = [
   searchIssuesTool,
   getIssueTool,
+  downloadAttachmentTool,
   createIssueTool,
   updateIssueTool,
   getTransitionsTool,
